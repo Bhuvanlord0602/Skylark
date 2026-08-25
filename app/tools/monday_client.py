@@ -113,17 +113,14 @@ class MondayClient:
         if variables:
             payload["variables"] = variables
 
-        delay = self.backoff_factor
-        last_exception = None
-        client = self._get_http_client()
-
         for attempt in range(1, self.max_retries + 1):
             try:
-                response = await client.post(
-                    self.api_url,
-                    json=payload,
-                    headers=self._get_headers()
-                )
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(
+                        self.api_url,
+                        json=payload,
+                        headers=self._get_headers()
+                    )
 
                 if response.status_code == 429:
                     retry_after = float(response.headers.get("Retry-After", delay))
