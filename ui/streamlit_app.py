@@ -12,6 +12,14 @@ Frontend Upgrade (Track A):
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
+
+# Ensure repository root is on sys.path for Streamlit Community Cloud
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import re
 import uuid
 import json
