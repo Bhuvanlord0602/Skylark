@@ -20,12 +20,11 @@ COPY docs/ docs/
 COPY streamlit_app.py .
 COPY README.md .
 
-# Expose Streamlit port
+# Expose ports
 EXPOSE 8501
+EXPOSE 10000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+ENV PORT=8501
 
-# Run Streamlit UI with in-process agent & analytics
-CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+# Run Streamlit UI with dynamic port binding for Render / Cloud
+CMD ["sh", "-c", "streamlit run streamlit_app.py --server.port=${PORT:-8501} --server.address=0.0.0.0 --server.headless=true"]
