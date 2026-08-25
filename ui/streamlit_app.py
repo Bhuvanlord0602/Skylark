@@ -166,6 +166,24 @@ def post_api_data(endpoint: str, payload: dict) -> dict:
 st.sidebar.title("📊 Skylark Drones")
 st.sidebar.caption("Executive Business Intelligence")
 
+# --- Credentials Configuration in Sidebar ---
+cur_token = os.getenv("MONDAY_API_TOKEN", "")
+cur_groq = os.getenv("GROQ_API_KEY", "")
+has_keys = bool(cur_token and cur_token != "mock_monday_token" and cur_groq)
+
+with st.sidebar.expander("🔑 API Credentials", expanded=not has_keys):
+    st.caption("Live Monday.com & Groq Qwen access keys:")
+    inp_monday = st.text_input("Monday API Token", value=cur_token, type="password", help="Monday.com Personal API v2 Token")
+    inp_groq = st.text_input("Groq API Key", value=cur_groq, type="password", help="Groq Cloud API Key")
+    if st.button("💾 Save Credentials", key="save_api_creds", use_container_width=True):
+        if inp_monday:
+            os.environ["MONDAY_API_TOKEN"] = inp_monday.strip()
+        if inp_groq:
+            os.environ["GROQ_API_KEY"] = inp_groq.strip()
+        st.cache_data.clear()
+        st.toast("Credentials updated and cache cleared!", icon="✅")
+        st.rerun()
+
 # --- Theme Selector in Sidebar ---
 st.sidebar.markdown("### 🎨 Display Theme")
 theme_mode = st.sidebar.radio("Theme Mode", ["Dark Mode 🌙", "Light Mode ☀️"], index=0, label_visibility="collapsed")

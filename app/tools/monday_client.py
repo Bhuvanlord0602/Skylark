@@ -65,22 +65,24 @@ class MondayClient:
             await self._http_client.aclose()
 
     def _get_token(self) -> str:
-        """Dynamically resolve active API token from instance, os.environ, or Streamlit Cloud secrets."""
-        if self.api_token and self.api_token.strip() and self.api_token != "mock_monday_token":
-            return self.api_token
-
-        tok = os.getenv("MONDAY_API_TOKEN") or settings.MONDAY_API_TOKEN
-        if tok and tok.strip() and tok != "mock_monday_token":
-            return tok
-
+        """Dynamically resolve active API token from Streamlit Cloud secrets, os.environ, or instance."""
         try:
             import streamlit as st
             if hasattr(st, "secrets") and "MONDAY_API_TOKEN" in st.secrets:
-                return str(st.secrets["MONDAY_API_TOKEN"])
+                tok = str(st.secrets["MONDAY_API_TOKEN"]).strip()
+                if tok and tok != "mock_monday_token":
+                    return tok
         except Exception:
             pass
 
-        return tok or ""
+        tok = os.getenv("MONDAY_API_TOKEN")
+        if tok and tok.strip() and tok != "mock_monday_token":
+            return tok.strip()
+
+        if self.api_token and self.api_token.strip() and self.api_token != "mock_monday_token":
+            return self.api_token.strip()
+
+        return ""
 
     def _get_headers(self) -> Dict[str, str]:
         """Construct secure HTTP headers. API token is never logged."""
