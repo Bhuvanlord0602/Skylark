@@ -64,17 +64,36 @@ class MondayClient:
         if self._http_client and not self._http_client.is_closed:
             await self._http_client.aclose()
 
+    def _get_token(self) -> str:
+        """Dynamically resolve active API token from instance, os.environ, or Streamlit Cloud secrets."""
+        if self.api_token and self.api_token.strip() and self.api_token != "mock_monday_token":
+            return self.api_token
+
+        tok = os.getenv("MONDAY_API_TOKEN") or settings.MONDAY_API_TOKEN
+        if tok and tok.strip() and tok != "mock_monday_token":
+            return tok
+
+        try:
+            import streamlit as st
+            if hasattr(st, "secrets") and "MONDAY_API_TOKEN" in st.secrets:
+                return str(st.secrets["MONDAY_API_TOKEN"])
+        except Exception:
+            pass
+
+        return tok or ""
+
     def _get_headers(self) -> Dict[str, str]:
         """Construct secure HTTP headers. API token is never logged."""
         return {
-            "Authorization": self.api_token,
+            "Authorization": self._get_token(),
             "Content-Type": "application/json",
             "API-Version": "2024-01"
         }
 
     async def _execute_query(self, query: str, variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Execute a strictly read-only GraphQL query with exponential backoff."""
-        if not self.api_token or self.api_token == "mock_monday_token":
+        active_token = self._get_token()
+        if not active_token or active_token == "mock_monday_token":
             logger.warning("No live MONDAY_API_TOKEN configured. Client operating in mock/fallback mode.")
 
         # Safety Check: Guarantee no mutations
