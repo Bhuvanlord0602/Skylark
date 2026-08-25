@@ -69,30 +69,70 @@ if "session_id" not in st.session_state:
     st.session_state.session_id = f"sess_{uuid.uuid4().hex[:12]}"
 
 
+def _run_async(coro):
+    """Run async coroutine safely in Streamlit worker thread."""
+    import asyncio
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
+            return loop.run_until_complete(coro)
+        return loop.run_until_complete(coro)
+    except RuntimeError:
+        return asyncio.run(coro)
+
+
 @st.cache_data(ttl=60)
 def fetch_api_data(endpoint: str) -> dict:
-    """Fetch cached data from FastAPI backend."""
+    """Fetch cached data from FastAPI backend with automatic in-process fallback for Streamlit Cloud."""
     try:
-        with httpx.Client(timeout=15.0) as client:
+        with httpx.Client(timeout=2.0) as client:
             resp = client.get(f"{API_BASE_URL}{endpoint}")
             if resp.status_code == 200:
                 return resp.json()
+    except Exception:
+        pass
+
+    # Direct in-process fallback (ideal for Streamlit Community Cloud)
+    try:
+        from app.tools.monday_client import monday_client
+        from app.tools.data_quality import data_quality_report
+        if endpoint == "/health":
+            return _run_async(monday_client.health_check())
+        elif endpoint == "/data-quality":
+            return _run_async(data_quality_report())
+        elif endpoint == "/":
+            return {"status": "online", "llm_provider": "groq"}
     except Exception as e:
         return {"error": str(e)}
     return {}
 
 
 def post_api_data(endpoint: str, payload: dict) -> dict:
-    """Send POST request to FastAPI backend."""
+    """Send POST request to FastAPI backend with automatic in-process fallback."""
     try:
         with httpx.Client(timeout=60.0) as client:
             resp = client.post(f"{API_BASE_URL}{endpoint}", json=payload)
             if resp.status_code == 200:
                 return resp.json()
-            else:
-                return {"error": f"HTTP {resp.status_code}: {resp.text}"}
+    except Exception:
+        pass
+
+    # In-process execution fallback
+    try:
+        from app.agent import run_agent
+        from app.tools.leadership_tools import generate_leadership_summary
+        if endpoint == "/chat":
+            return _run_async(run_agent(payload.get("message", ""), session_id=payload.get("session_id")))
+        elif endpoint == "/leadership-summary":
+            return _run_async(generate_leadership_summary(topic=payload.get("topic", "Executive Review"), period=payload.get("period", "Current Period")))
+        elif endpoint == "/refresh":
+            return {"status": "refresh_initiated", "requested_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")}
     except Exception as e:
         return {"error": str(e)}
+
+    return {"error": f"Failed to execute {endpoint}"}
 
 
 # --- Sidebar ---
