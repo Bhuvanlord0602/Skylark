@@ -29,6 +29,15 @@ import streamlit as st
 import plotly.graph_objects as go
 from datetime import datetime
 
+# Synchronize Streamlit Secrets to environment variables
+try:
+    if hasattr(st, "secrets"):
+        for k, v in st.secrets.items():
+            if isinstance(v, str) and k not in os.environ:
+                os.environ[k] = v
+except Exception:
+    pass
+
 
 def sanitize_markdown(text: str) -> str:
     """Escape dollar signs in plain text so Streamlit does not misinterpret currency as LaTeX math."""
@@ -106,8 +115,18 @@ def fetch_api_data(endpoint: str) -> dict:
     try:
         from app.tools.monday_client import monday_client
         from app.tools.data_quality import data_quality_report
+        from app.tools.deals_tools import compute_pipeline_metrics
+        from app.tools.work_order_tools import compute_ops_metrics
+        from app.tools.join_tools import join_deals_to_work_orders
+
         if endpoint == "/health":
             return _run_async(monday_client.health_check())
+        elif endpoint == "/analytics/deals":
+            return _run_async(compute_pipeline_metrics())
+        elif endpoint == "/analytics/work-orders":
+            return _run_async(compute_ops_metrics())
+        elif endpoint == "/analytics/cross-board":
+            return _run_async(join_deals_to_work_orders())
         elif endpoint == "/data-quality":
             return _run_async(data_quality_report())
         elif endpoint == "/":

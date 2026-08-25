@@ -1,8 +1,18 @@
 """Configuration settings for Monday.com BI Agent with Groq + Qwen."""
 
 import os
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Automatically load Streamlit Cloud secrets into environment variables
+try:
+    import streamlit as st
+    if hasattr(st, "secrets"):
+        for k, v in st.secrets.items():
+            if isinstance(v, str) and k not in os.environ:
+                os.environ[k] = v
+except Exception:
+    pass
 
 
 class Settings(BaseSettings):
