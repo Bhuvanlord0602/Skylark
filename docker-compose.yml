@@ -1,0 +1,93 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: monday_bi_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monday_bi_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MONDAY_API_TOKEN=${MONDAY_API_TOKEN}
+      - MONDAY_DEALS_BOARD_ID=${MONDAY_DEALS_BOARD_ID:-5030842959}
+      - MONDAY_WORK_ORDERS_BOARD_ID=${MONDAY_WORK_ORDERS_BOARD_ID:-5030843495}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=${GROQ_MODEL:-qwen/qwen3-32b}
+      - REDIS_URL=redis://redis:6379/0
+      - CACHE_TTL_SECONDS=300
+      - SESSION_TTL_SECONDS=86400
+      - HOST=0.0.0.0
+      - PORT=8000
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monday_bi_celery_worker
+    command: celery -A app.celery_app worker --loglevel=info
+    environment:
+      - MONDAY_API_TOKEN=${MONDAY_API_TOKEN}
+      - MONDAY_DEALS_BOARD_ID=${MONDAY_DEALS_BOARD_ID:-5030842959}
+      - MONDAY_WORK_ORDERS_BOARD_ID=${MONDAY_WORK_ORDERS_BOARD_ID:-5030843495}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=${GROQ_MODEL:-qwen/qwen3-32b}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monday_bi_celery_beat
+    command: celery -A app.celery_app beat --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    container_name: monday_bi_ui
+    ports:
+      - "8501:8501"
+    environment:
+      - BACKEND_URL=http://backend:8000
+      - API_BASE_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
