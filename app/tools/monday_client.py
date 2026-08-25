@@ -67,19 +67,25 @@ class MondayClient:
 
     def _get_token(self) -> str:
         """Dynamically resolve active API token from Streamlit Cloud secrets, os.environ, or instance."""
+        # 1. Check Streamlit Cloud secrets
         try:
             import streamlit as st
-            if hasattr(st, "secrets") and "MONDAY_API_TOKEN" in st.secrets:
-                tok = str(st.secrets["MONDAY_API_TOKEN"]).strip()
-                if tok and tok != "mock_monday_token":
-                    return tok
+            if hasattr(st, "secrets"):
+                for key in ("MONDAY_API_TOKEN", "monday_api_token", "MONDAY_TOKEN", "monday_token"):
+                    if key in st.secrets:
+                        tok = str(st.secrets[key]).strip()
+                        if tok and tok != "mock_monday_token":
+                            return tok
         except Exception:
             pass
 
-        tok = os.getenv("MONDAY_API_TOKEN")
-        if tok and tok.strip() and tok != "mock_monday_token":
-            return tok.strip()
+        # 2. Check os.environ
+        for key in ("MONDAY_API_TOKEN", "monday_api_token", "MONDAY_TOKEN", "monday_token"):
+            tok = os.getenv(key)
+            if tok and tok.strip() and tok != "mock_monday_token":
+                return tok.strip()
 
+        # 3. Check instance token
         if self.api_token and self.api_token.strip() and self.api_token != "mock_monday_token":
             return self.api_token.strip()
 
