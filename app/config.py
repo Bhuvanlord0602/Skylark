@@ -9,8 +9,8 @@ try:
     import streamlit as st
     if hasattr(st, "secrets"):
         for k, v in st.secrets.items():
-            if isinstance(v, str) and k not in os.environ:
-                os.environ[k] = v
+            if isinstance(v, str) and v.strip():
+                os.environ[k] = v.strip()
 except Exception:
     pass
 

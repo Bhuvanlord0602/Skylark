@@ -29,12 +29,12 @@ import streamlit as st
 import plotly.graph_objects as go
 from datetime import datetime
 
-# Synchronize Streamlit Secrets to environment variables
+# Synchronize Streamlit Secrets to environment variables unconditionally
 try:
     if hasattr(st, "secrets"):
         for k, v in st.secrets.items():
-            if isinstance(v, str) and k not in os.environ:
-                os.environ[k] = v
+            if isinstance(v, str) and v.strip():
+                os.environ[k] = v.strip()
 except Exception:
     pass
 
