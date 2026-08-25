@@ -57,7 +57,18 @@ WORK_ORDERS_SEMANTIC_FIELDS = {
 }
 
 # Static column ID mapping fallback for Deals
+# Static column ID mapping fallback for Deals
 DEALS_COLUMN_MAP: Dict[str, str] = {
+    # Live Monday Board 5030842959 column IDs
+    "text_mm6jscz7": "deal_value",
+    "text_mm6j6918": "stage",
+    "text_mm6jt55j": "sector_service",
+    "text_mm6jq977": "closure_probability",
+    "text_mm6jpdy2": "close_date",
+    "text_mm6j8zfq": "client",
+    "text_mm6jt8z0": "owner",
+    "text_mm6jbdq3": "product_deal",
+    "text_mm6jx8xs": "created_date",
     "name": "client",
     "client": "client",
     "client_name": "client",
@@ -102,8 +113,8 @@ DEALS_TITLE_ALIASES: Dict[str, str] = {
     "account": "client",
     "deal name": "deal_name",
     "name": "client",
-    "client code": "client_code",
-    "customer code": "client_code",
+    "client code": "client",
+    "customer code": "client",
     
     "sector": "sector_service",
     "sector/service": "sector_service",
@@ -117,6 +128,7 @@ DEALS_TITLE_ALIASES: Dict[str, str] = {
     "deal status": "deal_status",
     "status": "stage",
     
+    "masked deal value": "deal_value",
     "deal value": "deal_value",
     "value": "deal_value",
     "amount": "deal_value",
@@ -125,13 +137,13 @@ DEALS_TITLE_ALIASES: Dict[str, str] = {
     
     "close date": "close_date",
     "expected close date": "close_date",
-    "tentative close date": "tentative_close_date",
+    "tentative close date": "close_date",
     "target close date": "close_date",
     "closing date": "close_date",
     
     "owner": "owner",
     "deal owner": "owner",
-    "owner code": "owner_code",
+    "owner code": "owner",
     "sales rep": "owner",
     "lead": "owner",
     
@@ -157,6 +169,28 @@ DEALS_TITLE_ALIASES: Dict[str, str] = {
 
 # Static column ID mapping fallback for Work Orders
 WORK_ORDERS_COLUMN_MAP: Dict[str, str] = {
+    # Live Monday Board 5030843495 column IDs
+    "text_mm6jx561": "deal_name",
+    "text_mm6jf3hg": "customer_name_code",
+    "text_mm6jcn4s": "nature_of_work",
+    "text_mm6jmha6": "execution_status",
+    "text_mm6jw77g": "data_delivery_date",
+    "text_mm6jb3j3": "po_loi_date",
+    "text_mm6j8kwx": "document_type",
+    "text_mm6j1m6w": "probable_start_date",
+    "text_mm6jx2nj": "probable_end_date",
+    "text_mm6j5qqk": "assigned_team",
+    "text_mm6jhpf3": "sector",
+    "text_mm6jfzc0": "type_of_work",
+    "text_mm6j8wv8": "deal_value",
+    "text_mm6jfx76": "deal_value",
+    "text_mm6ja6zm": "billed_value",
+    "text_mm6je168": "billed_value",
+    "text_mm6jzgzh": "collected_amount",
+    "text_mm6jeq70": "amount_receivable",
+    "text_mm6j9cd2": "invoice_status",
+    "text_mm6jg5qe": "billing_status",
+    "text_mm6jztgh": "collection_status",
     "name": "deal_name",
     "client": "client",
     "client_name": "client",
@@ -191,6 +225,7 @@ WORK_ORDERS_COLUMN_MAP: Dict[str, str] = {
 
 # Title aliases for Work Orders board
 WORK_ORDERS_TITLE_ALIASES: Dict[str, str] = {
+    "deal name masked": "deal_name",
     "deal name": "deal_name",
     "order name": "deal_name",
     "name": "deal_name",
@@ -213,6 +248,7 @@ WORK_ORDERS_TITLE_ALIASES: Dict[str, str] = {
     
     "data delivery date": "data_delivery_date",
     "delivery date": "data_delivery_date",
+    "date of po/loi": "po_loi_date",
     "po / loi date": "po_loi_date",
     "po date": "po_loi_date",
     "loi date": "po_loi_date",
@@ -229,6 +265,11 @@ WORK_ORDERS_TITLE_ALIASES: Dict[str, str] = {
     "billing status": "billing_status",
     "collection status": "collection_status",
     
+    "amount in rupees (excl of gst) (masked)": "deal_value",
+    "billed value in rupees (excl of gst.) (masked)": "billed_value",
+    "billed value in rupees (incl of gst.) (masked)": "billed_value",
+    "collected amount in rupees (incl of gst.) (masked)": "collected_amount",
+    "amount receivable (masked)": "amount_receivable",
     "billed value": "billed_value",
     "billed amount": "billed_value",
     "invoice amount": "billed_value",
@@ -246,6 +287,7 @@ WORK_ORDERS_TITLE_ALIASES: Dict[str, str] = {
     "actual billing month": "actual_billing_month",
     "actual collection month": "actual_collection_month",
     
+    "bd/kam personnel code": "assigned_team",
     "assigned team": "assigned_team",
     "pilot": "assigned_team",
     "team": "assigned_team",
