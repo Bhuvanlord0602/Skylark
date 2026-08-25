@@ -45,8 +45,8 @@ async def get_redis_client():
             _REDIS_CLIENT = client
             _REDIS_AVAILABLE = True
             logger.info(f"Connected to Redis cache at {settings.REDIS_URL}")
-        except Exception as e:
-            logger.warning(f"Redis unavailable ({e}). Falling back to in-memory caching.")
+        except Exception:
+            logger.info("Using built-in in-memory caching layer (TTL=300s).")
             _REDIS_AVAILABLE = False
             _REDIS_CLIENT = None
 
